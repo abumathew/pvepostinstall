@@ -1,0 +1,13 @@
+CMDSCRIPT /etc/nut/upssched-cmd
+PIPEFN /etc/nut/upssched.pipe
+LOCKFN /etc/nut/upssched.lock
+
+AT ONBATT * START-TIMER onbatt 30
+AT ONLINE * CANCEL-TIMER onbatt online
+AT ONBATT * START-TIMER earlyshutdown 30
+AT LOWBATT * EXECUTE onbatt
+AT COMMBAD * START-TIMER commbad 30
+AT COMMOK * CANCEL-TIMER commbad commok
+AT NOCOMM * EXECUTE commbad
+AT SHUTDOWN * EXECUTE powerdown
+AT SHUTDOWN * EXECUTE powerdown
