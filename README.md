@@ -17,4 +17,4 @@ Automates common post-install tasks for a new Proxmox VE host.
 cp .env.example .env
 nano .env
 make run
->>>>>>> c6bce1a (Initial commit - Proxmox bootstrap repo)
+
