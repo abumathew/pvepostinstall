@@ -11,6 +11,7 @@ run_step "NUT client configuration" "${ROOT_DIR}/scripts/nut_client.sh"
 run_step "Sensors configuration" "${ROOT_DIR}/scripts/sensors.sh"
 run_step "IOMMU configuration" "${ROOT_DIR}/scripts/iommu.sh"
 run_step "Powertop configuration" "${ROOT_DIR}/scripts/powertop.sh"
+run_step "Storage configuration" "${ROOT_DIR}/scripts/storage.sh"
 run_step "Verification" "${ROOT_DIR}/scripts/verify.sh"
 
 echo
