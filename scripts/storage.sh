@@ -42,4 +42,3 @@ add_cifs_storage() {
 }
 
 add_cifs_storage "$SMB1_NAME" "$SMB1_SERVER" "$SMB1_SHARE" "images,iso"
-add_cifs_storage "$SMB2_NAME" "$SMB2_SERVER" "$SMB2_SHARE" "backup"
