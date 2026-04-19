@@ -3,15 +3,33 @@ set -Eeuo pipefail
 
 source "${ROOT_DIR}/scripts/common.sh"
 
+assert_writable() {
+  local path="$1"
+  local testfile="${path}/.bootstrap-write-test"
+
+  touch "$testfile"
+  rm -f "$testfile"
+}
+
+storage_exists() {
+  local name="$1"
+  grep -qE "^[[:space:]]*cifs:[[:space:]]*${name}$" /etc/pve/storage.cfg 2>/dev/null
+}
+
 add_cifs_storage() {
   local name="$1"
   local server="$2"
   local share="$3"
   local content="$4"
+  local path="/mnt/pve/${name}"
 
-  if pvesm status | grep -q "^${name} "; then
+  if storage_exists "$name"; then
     echo "Storage ${name} already exists, skipping"
     return
+  fi
+
+  if [[ -d "$path" ]]; then
+    assert_writable "$path"
   fi
 
   pvesm add cifs "$name" \
