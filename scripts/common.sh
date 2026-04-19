@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+STATE_DIR="/var/lib/proxmox-bootstrap-state"
+
 log() {
   echo
   echo "==== $* ===="
@@ -19,6 +21,8 @@ load_config() {
 
   require_root
 
+  mkdir -p "$STATE_DIR"
+
   [[ -f "${root_dir}/config/defaults.env" ]] && source "${root_dir}/config/defaults.env"
 
   if [[ -f "${root_dir}/.env" ]]; then
@@ -34,6 +38,7 @@ load_config() {
   : "${ENABLE_IOMMU:?Missing ENABLE_IOMMU}"
 
   export ROOT_DIR="${root_dir}"
+  export STATE_DIR
   export UPS_NAME UPS_HOST UPS_USER UPS_PASS ENABLE_IOMMU
   export POST_PVE_INSTALL_URL CPU_GOVERNOR_SCRIPT_URL PVE_SENSOR_GUI_SCRIPT_URL IOMMU_CPU_VENDOR
 }
@@ -56,10 +61,47 @@ render_template() {
   envsubst < "$src" > "$dest"
 }
 
-run_step() {
-  local name="$1"
-  local script="$2"
+step_done_file() {
+  local step_id="$1"
+  echo "${STATE_DIR}/${step_id}.done"
+}
 
-  log "$name"
-  bash "$script"
+is_step_done() {
+  local step_id="$1"
+  [[ -f "$(step_done_file "$step_id")" ]]
+}
+
+mark_step_done() {
+  local step_id="$1"
+  touch "$(step_done_file "$step_id")"
+}
+
+clear_step_done() {
+  local step_id="$1"
+  rm -f "$(step_done_file "$step_id")"
+}
+
+run_step() {
+  local step_id="$1"
+  local name="$2"
+  local script="$3"
+
+  if is_step_done "$step_id"; then
+    log "${name} (already completed, skipping)"
+    return
+  fi
+
+  log "${name}"
+  if bash "$script"; then
+    mark_step_done "$step_id"
+    echo "Marked ${step_id} as completed"
+  else
+    echo "Step ${step_id} failed"
+    exit 1
+  fi
+}
+
+reset_state() {
+  rm -rf "$STATE_DIR"
+  mkdir -p "$STATE_DIR"
 }
