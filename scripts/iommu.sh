@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+source "${ROOT_DIR}/scripts/common.sh"
+
 [[ "${ENABLE_IOMMU}" == "true" ]] || exit 0
 
 GRUB_FILE="/etc/default/grub"

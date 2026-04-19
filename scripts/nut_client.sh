@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+source "${ROOT_DIR}/scripts/common.sh"
+
 apt-get install -y nut-client gettext-base
 
 backup_file /etc/nut/nut.conf

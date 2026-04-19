@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+source "${ROOT_DIR}/scripts/common.sh"
+
 add_cifs_storage() {
   local name="$1"
   local server="$2"

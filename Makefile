@@ -5,7 +5,7 @@ init:
 	chmod +x bootstrap.sh scripts/*.sh
 
 run:
-	sudo ./bootstrap.sh
+	./bootstrap.sh
 
 verify:
-	sudo ./scripts/verify.sh
+	./scripts/verify.sh

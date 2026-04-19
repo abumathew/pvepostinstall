@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+source "${ROOT_DIR}/scripts/common.sh"
+
 echo "Checking nut-client:"
 systemctl --no-pager --full status nut-client || true
 

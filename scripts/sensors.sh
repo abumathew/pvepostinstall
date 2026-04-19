@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+source "${ROOT_DIR}/scripts/common.sh"
+
 apt-get install -y lm-sensors
 
 if [[ ! -f /root/pve-mod-gui-sensors.sh ]]; then
