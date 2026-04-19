@@ -40,9 +40,6 @@ load_config() {
   : "${SMB1_NAME:?Missing SMB1_NAME}"
   : "${SMB1_SERVER:?Missing SMB1_SERVER}"
   : "${SMB1_SHARE:?Missing SMB1_SHARE}"
-  : "${SMB2_NAME:?Missing SMB2_NAME}"
-  : "${SMB2_SERVER:?Missing SMB2_SERVER}"
-  : "${SMB2_SHARE:?Missing SMB2_SHARE}"
   : "${SMB_USER:?Missing SMB_USER}"
   : "${SMB_PASS:?Missing SMB_PASS}"
 
