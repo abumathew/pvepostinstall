@@ -37,12 +37,25 @@ load_config() {
   : "${UPS_PASS:?Missing UPS_PASS}"
   : "${ENABLE_IOMMU:?Missing ENABLE_IOMMU}"
 
+  : "${SMB1_NAME:?Missing SMB1_NAME}"
+  : "${SMB1_SERVER:?Missing SMB1_SERVER}"
+  : "${SMB1_SHARE:?Missing SMB1_SHARE}"
+  : "${SMB2_NAME:?Missing SMB2_NAME}"
+  : "${SMB2_SERVER:?Missing SMB2_SERVER}"
+  : "${SMB2_SHARE:?Missing SMB2_SHARE}"
+  : "${SMB_USER:?Missing SMB_USER}"
+  : "${SMB_PASS:?Missing SMB_PASS}"
+
   export ROOT_DIR="${root_dir}"
   export STATE_DIR
+
   export UPS_NAME UPS_HOST UPS_USER UPS_PASS ENABLE_IOMMU
+  export SMB1_NAME SMB1_SERVER SMB1_SHARE
+  export SMB2_NAME SMB2_SERVER SMB2_SHARE
+  export SMB_USER SMB_PASS
+
   export POST_PVE_INSTALL_URL CPU_GOVERNOR_SCRIPT_URL PVE_SENSOR_GUI_SCRIPT_URL IOMMU_CPU_VENDOR
 }
-
 backup_file() {
   local file="$1"
   [[ -f "$file" && ! -f "${file}.bak" ]] && cp -a "$file" "${file}.bak"
