@@ -46,6 +46,8 @@ load_config() {
   export ROOT_DIR="${root_dir}"
   export STATE_DIR
 
+  export ENABLE_PVE_SENSOR_GUI_MOD
+
   export UPS_NAME UPS_HOST UPS_USER UPS_PASS ENABLE_IOMMU
   export SMB1_NAME SMB1_SERVER SMB1_SHARE
   export SMB_USER SMB_PASS
