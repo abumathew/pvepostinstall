@@ -12,7 +12,7 @@ if [[ "${ENABLE_PVE_SENSOR_GUI_MOD:-false}" == "true" ]]; then
 
   if [[ -f "$LOCAL_SENSOR_MOD" ]]; then
     chmod +x "$LOCAL_SENSOR_MOD"
-    bash "$LOCAL_SENSOR_MOD"
+    bash "$LOCAL_SENSOR_MOD" install
   else
     echo "WARNING: Sensor GUI mod enabled, but file not found: $LOCAL_SENSOR_MOD"
     exit 1
