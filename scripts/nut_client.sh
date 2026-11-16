@@ -16,6 +16,8 @@ render_template "${ROOT_DIR}/templates/upssched.conf.tpl" /etc/nut/upssched.conf
 mkdir -p /etc/nut/upssched
 render_template "${ROOT_DIR}/templates/upssched-cmd.tpl" /etc/nut/upssched-cmd
 
+chown root:nut /etc/nut/upsmon.conf
+chmod 640 /etc/nut/upsmon.conf
 chmod +x /etc/nut/upssched-cmd
 
 systemctl enable nut-client || true

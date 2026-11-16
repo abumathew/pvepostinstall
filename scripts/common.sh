@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-STATE_DIR="/var/lib/proxmox-bootstrap-state"
+STATE_DIR="${STATE_DIR:-/var/lib/proxmox-bootstrap-state}"
 
 log() {
   echo
@@ -33,30 +33,35 @@ load_config() {
 
   : "${UPS_NAME:?Missing UPS_NAME}"
   : "${UPS_HOST:?Missing UPS_HOST}"
-  : "${UPS_USER:?Missing UPS_USER}"
-  : "${UPS_PASS:?Missing UPS_PASS}"
-  : "${ENABLE_IOMMU:?Missing ENABLE_IOMMU}"
+  if [[ "${2:-}" != --repair-gui ]]; then
+    : "${UPS_USER:?Missing UPS_USER}"
+    : "${UPS_PASS:?Missing UPS_PASS}"
+    : "${ENABLE_IOMMU:?Missing ENABLE_IOMMU}"
 
-  : "${SMB1_NAME:?Missing SMB1_NAME}"
-  : "${SMB1_SERVER:?Missing SMB1_SERVER}"
-  : "${SMB1_SHARE:?Missing SMB1_SHARE}"
-  : "${SMB_USER:?Missing SMB_USER}"
-  : "${SMB_PASS:?Missing SMB_PASS}"
+    : "${SMB1_NAME:?Missing SMB1_NAME}"
+    : "${SMB1_SERVER:?Missing SMB1_SERVER}"
+    : "${SMB1_SHARE:?Missing SMB1_SHARE}"
+    : "${SMB_USER:?Missing SMB_USER}"
+    : "${SMB_PASS:?Missing SMB_PASS}"
+
+  fi
 
   export ROOT_DIR="${root_dir}"
   export STATE_DIR
 
-  export ENABLE_PVE_SENSOR_GUI_MOD
+  export ENABLE_PVE_SENSOR_GUI_MOD GUI_CPU_MODE GUI_ZERO_FANS GUI_TEMP_UNIT GUI_SYSTEM_INFO
 
   export UPS_NAME UPS_HOST UPS_USER UPS_PASS ENABLE_IOMMU
   export SMB1_NAME SMB1_SERVER SMB1_SHARE
   export SMB_USER SMB_PASS
 
-  export POST_PVE_INSTALL_URL CPU_GOVERNOR_SCRIPT_URL PVE_SENSOR_GUI_SCRIPT_URL IOMMU_CPU_VENDOR
+  export IOMMU_CPU_VENDOR
 }
 backup_file() {
   local file="$1"
-  [[ -f "$file" && ! -f "${file}.bak" ]] && cp -a "$file" "${file}.bak"
+  if [[ -f "$file" && ! -f "${file}.bak" ]]; then
+    cp -a "$file" "${file}.bak"
+  fi
 }
 
 append_line_if_missing() {
@@ -69,7 +74,7 @@ append_line_if_missing() {
 render_template() {
   local src="$1"
   local dest="$2"
-  envsubst < "$src" > "$dest"
+  envsubst '${UPS_NAME} ${UPS_HOST} ${UPS_USER} ${UPS_PASS}' < "$src" > "$dest"
 }
 
 step_done_file() {
@@ -97,22 +102,14 @@ run_step() {
   local name="$2"
   local script="$3"
 
-  if is_step_done "$step_id"; then
+  if [[ "${RERUN:-false}" != true ]] && is_step_done "$step_id"; then
     log "${name} (already completed, skipping)"
     return
   fi
 
   log "${name}"
-  if bash "$script"; then
-    mark_step_done "$step_id"
-    echo "Marked ${step_id} as completed"
-  else
-    echo "Step ${step_id} failed"
-    exit 1
-  fi
-}
-
-reset_state() {
-  rm -rf "$STATE_DIR"
-  mkdir -p "$STATE_DIR"
+  clear_step_done "$step_id"
+  bash "$script" || { echo "Step ${step_id} failed" >&2; exit 1; }
+  mark_step_done "$step_id"
+  echo "Marked ${step_id} as completed"
 }

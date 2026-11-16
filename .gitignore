@@ -2,3 +2,6 @@
 *.log
 *.bak
 
+
+
+__pycache__/

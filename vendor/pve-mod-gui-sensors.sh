@@ -17,7 +17,7 @@ HDD_ITEMS_PER_ROW=0
 KNOWN_CPU_SENSORS=("coretemp-isa-" "k10temp-pci-")
 
 # Overwrite default backup location
-BACKUP_DIR=""
+BACKUP_DIR="${PVE_MOD_BACKUP_DIR:-}"
 
 ##################### DO NOT EDIT BELOW #######################
 # Only to be used to debug on other systems. Save the "sensor -j" output into a json file.
@@ -37,8 +37,8 @@ JSON_EXPORT_DIRECTORY="$SCRIPT_CWD"
 JSON_EXPORT_FILENAME="sensorsdata.json"
 
 # File paths
-PVE_MANAGER_LIB_JS_FILE="/usr/share/pve-manager/js/pvemanagerlib.js"
-NODES_PM_FILE="/usr/share/perl5/PVE/API2/Nodes.pm"
+PVE_MANAGER_LIB_JS_FILE="${PVE_MANAGER_LIB_JS_FILE:-/usr/share/pve-manager/js/pvemanagerlib.js}"
+NODES_PM_FILE="${NODES_PM_FILE:-/usr/share/perl5/PVE/API2/Nodes.pm}"
 
 #region message tools
 # Section header (bold)
@@ -70,6 +70,20 @@ function err() {
 function ask() {
     local prompt="$1"
     local response
+    if [[ "${PVE_MOD_AUTOMATED:-false}" == true ]]; then
+        case "$prompt" in
+            "Display temperatures for all cores"*) response="${GUI_CPU_MODE:-C}" ;;
+            "Display fans reporting zero speed?"*) response="${GUI_ZERO_FANS:-y}" ;;
+            "Display temperatures in Celsius"*) response="${GUI_TEMP_UNIT:-C}" ;;
+            "Enable UPS information?"*) response=y ;;
+            "Enter UPS connection"*) response="${UPS_NAME}@${UPS_HOST}" ;;
+            "Enable system information?"*) response="${GUI_SYSTEM_INFO:-1}" ;;
+            "Clear the browser cache"*) response="" ;;
+            *) echo "Unsupported automated prompt: $prompt" >&2; exit 1 ;;
+        esac
+        echo "$response"
+        return
+    fi
     read -p $'\n\e[1;36m'"${prompt}:"$'\e[0m ' response
     echo "$response"
 }
@@ -316,8 +330,8 @@ function configure {
                 upsOutput=$(upsc "$upsConnection" 2>&1)
             fi
 
-            if echo "$upsOutput" | grep -q "device.model:"; then
-                modelName=$(echo "$upsOutput" | grep "device.model:" | cut -d':' -f2- | xargs)
+            if echo "$upsOutput" | grep -qE "(device|ups)\.model:"; then
+                modelName=$(echo "$upsOutput" | grep -m1 -E "(device|ups)\.model:" | cut -d':' -f2- | xargs)
                 ENABLE_UPS=true
                 info "Connected to UPS model: $modelName at $upsConnection."
             else
@@ -591,7 +605,7 @@ generate_and_insert_widget() {
 	local widget_name="$3"
 
 	if [ "$enable_flag" = true ]; then
-		local temp_js_file="/tmp/${widget_name}_widget.js"
+		local temp_js_file="${PVE_MOD_TMPDIR:-/tmp}/${widget_name}_widget.js"
 		"$generator_func" "$temp_js_file"
 		insert_widget_after_thermal "$temp_js_file"
 		rm "$temp_js_file"
@@ -602,7 +616,7 @@ generate_and_insert_widget() {
 # Function to generate drive header
 generate_drive_header() {
 	if [ "$ENABLE_NVME_TEMP" = true ] || [ "$ENABLE_HDD_TEMP" = true ]; then
-        local temp_js_file="/tmp/drive_header.js"
+        local temp_js_file="${PVE_MOD_TMPDIR:-/tmp}/drive_header.js"
 		#region drive header heredoc
 		cat > "$temp_js_file" <<'EOF'
 		{
@@ -644,7 +658,7 @@ expand_statusview_space() {
 # Function to move node summary into its own container
 setup_node_summary_container() {
     # Move the node summary box into its own container
-    local temp_js_file="/tmp/summary_container.js"
+    local temp_js_file="${PVE_MOD_TMPDIR:-/tmp}/summary_container.js"
     #region summary container heredoc
     cat > "$temp_js_file" <<'EOF'
 {
@@ -711,7 +725,7 @@ add_visual_separator() {
     fi
 
     if [ -n "$lastItemId" ]; then
-        local temp_js_file="/tmp/visual_separator.js"
+        local temp_js_file="${PVE_MOD_TMPDIR:-/tmp}/visual_separator.js"
 
 		#region visual spacing heredoc
         cat > "$temp_js_file" <<'EOF'
@@ -762,7 +776,7 @@ EOF
 
 # Function to generate and insert temperature conversion helper class
 generate_and_insert_temp_helper() {
-	local temp_js_file="/tmp/temp_helper.js"
+	local temp_js_file="${PVE_MOD_TMPDIR:-/tmp}/temp_helper.js"
 
 	msgb "\n=== Inserting temperature helper ==="
 
@@ -861,7 +875,7 @@ EOF
         exit 1
     fi
 
-	sed -i "/^Ext.define('PVE.node.StatusView'/e cat /tmp/temp_helper.js" "$PVE_MANAGER_LIB_JS_FILE"
+	sed -i "/^Ext.define('PVE.node.StatusView'/e cat ${PVE_MOD_TMPDIR:-/tmp}/temp_helper.js" "$PVE_MANAGER_LIB_JS_FILE"
 	rm "$temp_js_file"
 
 	info "Temperature helper inserted successfully."
@@ -1616,7 +1630,7 @@ check_mod_installation() {
 function restart_proxy {
 	# Restart pveproxy
 	info "Restarting PVE proxy..."
-	systemctl restart pveproxy
+	[[ "${PVE_MOD_STAGING:-false}" == true ]] || systemctl restart pveproxy
 }
 
 function save_sensors_data {
@@ -1748,3 +1762,4 @@ done
 if [[ $executed -eq 0 ]]; then
 	usage
 fi
+
