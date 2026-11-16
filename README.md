@@ -79,3 +79,21 @@ make test
 
 Tests use temporary repository fixtures and mocked bootstrap steps, never host
 APT or service commands. Live Proxmox GUI compatibility must be checked on a host.
+
+### Version compatibility check
+
+The actual vendor patch was applied locally to the official PVE **9.2.26** source
+at commit `41a0e2e09b9e6f9da5a19b580a38db2b45ece97b` (matching chronos).
+The patched node StatusView/Summary JavaScript passed `node --check`; CPU/fan/UPS
+widgets registered once, CPU and UPS renderers accepted simulated readings, and
+the inserted Perl retrievers compiled and returned valid sensor JSON and UPS data.
+This is a source compatibility check, not a live browser/hardware test or a full
+`Nodes.pm` compile with Proxmox dependencies.
+
+Repeat it with an official source checkout and Node.js/Perl installed:
+
+```sh
+PVE_MANAGER_SOURCE=/path/to/pve-manager make test
+```
+
+Without that environment variable, the optional compatibility test is skipped.
