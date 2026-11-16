@@ -8,4 +8,10 @@ run:
 	./bootstrap.sh
 
 verify:
-	./scripts/verify.sh
+	bash -c 'source scripts/common.sh; load_config "$$PWD"; bash scripts/verify.sh'
+
+
+test:
+	bash -n bootstrap.sh
+	@for script in scripts/*.sh vendor/*.sh; do bash -n "$$script" || exit; done
+	python3 -m unittest discover -s tests -v
